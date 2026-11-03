@@ -12,6 +12,7 @@
 <meta name="theme-color" content="#020203">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="home.css">
 </head>
 <body>
 
@@ -40,80 +41,235 @@
       <a class="button" href="#features">See what it does</a>
     </div>
     <p class="fine" id="download-meta">Free · Windows 8.1, 10 and 11 · 64-bit</p>
-    <figure class="hero-shot">
-      <img src="assets/calibration.png" alt="HIDUSBF calibration tab for a DualSense Edge, with Smart calibration set to Loose" width="770" height="815">
-    </figure>
   </section>
 
-  <section class="features" id="features">
-    <article class="feature">
-      <div class="text">
-        <p class="tag mono">up to 8,000 Hz</p>
-        <h2>Polling rate</h2>
-        <p>Pick a rate for any USB mouse, keyboard or controller: 250, 500, 1000, 2000, 4000 or 8000 Hz. HIDUSBF installs SweetLow's hidusbf filter driver, attaches it to the device you choose and restarts the device for you.</p>
-        <p>The live input panel shows the real report rate, so you can see whether the device keeps up.</p>
-      </div>
-      <img src="assets/polling.png" alt="Polling rate set to 8,000 Hz with live stick input reading 8,007 reports per second" width="524" height="665" loading="lazy">
-    </article>
-
-    <article class="feature flip">
-      <div class="text">
-        <p class="tag mono">DualSense · DualSense Edge · DualShock 4</p>
-        <h2>Controller calibration</h2>
-        <p>Correct stick-center offsets, teach the controller each stick's full range, or fine-tune the stored values while you watch the stick check. Calibration cannot repair worn or damaged hardware.</p>
-        <p>Smart calibration re-measures both sticks and sets how they feel: <span class="hl">Loose</span> for lighter, quicker aim or <span class="hl">Tight</span> for steadier aim. It's stored on the controller, so it works in every game.</p>
-        <p>Changes stay temporary until you save them, and every connection keeps a snapshot you can restore.</p>
-        <p class="support"><span class="hl">Which controllers?</span> Genuine DualSense and DualSense Edge get everything: center, range, fine-tune and the Loose or Tight feel. DualShock 4 (V1 and V2) gets center and range. Calibration needs a USB cable. Clones aren't supported. Xbox, Nintendo, GameSir, SCUF and other controllers get the polling rate only.</p>
-      </div>
-      <img src="assets/smart-calibration.png" alt="Smart calibration set to Loose and Strong, above the manual center, range and fine-tune tools" width="703" height="368" loading="lazy">
-    </article>
-
-    <div class="grid">
-      <div class="card">
-        <h3>Lights</h3>
-        <p>Set your controller's light bar and player LEDs, and the per-key lighting on a SteelSeries Apex Pro TKL Gen 3. Your colors are saved.</p>
-      </div>
-      <div class="card">
-        <h3>Profiles</h3>
-        <p>Save a controller's settings as a profile and switch between them from the top of the page. Lights and trigger resistance come back every time it connects.</p>
-      </div>
-      <div class="card">
-        <h3>Every device, by name</h3>
-        <p>An overview of what's plugged in, with real product names and pictures instead of USB IDs.</p>
-      </div>
-      <div class="card">
-        <h3>Keeps itself current</h3>
-        <p>HIDUSBF checks for a new version while it starts and asks before installing anything.</p>
-      </div>
+  <div class="h-page">
+    <div class="h-strip">
+      <span>Mice / Keyboards / Controllers</span>
+      <span>Scroll to explore <span aria-hidden="true">↓</span></span>
     </div>
-  </section>
 
-  <section class="info-link-section" aria-labelledby="information-title">
-    <p class="tag mono">INFORMATION / CONTROLLERS</p>
-    <h2 id="information-title">Understand the hardware.</h2>
-    <p>TMR vs Hall effect, JS13, 3-pin vs 5-pin, Marius and other boards. A sourced guide to controller specs, compatibility and the claims worth questioning.</p>
-    <a class="button" href="information/">Read the controller guide <span aria-hidden="true">↗</span></a>
-  </section>
+    <section class="h-section" id="features" aria-labelledby="inside-title">
+      <div class="h-top">
+        <div>
+          <p class="h-eyebrow">01 / Inside the app</p>
+          <h2 id="inside-title">See it before<br>you install it.</h2>
+        </div>
+        <p class="h-intro">These are real HIDUSBF screens. Pick a tab to look around.</p>
+      </div>
 
-  <section class="install" id="install">
-    <h2>Install</h2>
-    <ol>
-      <li><span class="n mono">1</span><div><h3>Download and run the installer</h3><p>It installs to Program Files and adds HIDUSBF to the Start menu. HIDUSBF needs administrator rights because it manages a driver.</p></div></li>
-      <li><span class="n mono">2</span><div><h3>Install the driver once</h3><p>Open <span class="hl">Driver</span> in the sidebar and install the service. The first-start tour walks you through it.</p></div></li>
-      <li><span class="n mono">3</span><div><h3>Pick a device and a rate</h3><p>Open a device, turn on the filter, choose a rate and restart the device. Re-plug it or reboot if the rate doesn't change.</p></div></li>
-    </ol>
-    <div class="notes">
-      <p><span class="hl">SmartScreen warning?</span> The installer isn't code-signed yet. Choose More info, then Run anyway. Each release has a .sha256 file if you want to check the download.</p>
-      <p><span class="hl">Uninstalling</span> leaves the driver in place. To remove it, turn the filter off on every device, then uninstall the service from Driver before removing the app.</p>
-      <p><span class="hl">Results vary.</span> How fast a device can really report depends on the device and your USB controller. The live input panel shows what you actually get.</p>
-    </div>
-  </section>
+      <div class="h-viewer">
+        <div class="h-viewer-bar">
+          <span class="h-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="h-viewer-title">HIDUSBF / Real screenshots</span>
+          <button class="h-expand" id="h-expand" type="button" aria-label="Enlarge this screenshot"><span aria-hidden="true">⤢</span> <span class="h-expand-word">Expand</span></button>
+        </div>
+        <div class="h-tabs" role="tablist" aria-label="App screenshots">
+          <button role="tab" type="button" id="tab-input" aria-selected="true" aria-controls="h-panel" data-screen="input"><span class="h-tab-n">01</span> Input</button>
+          <button role="tab" type="button" id="tab-calibration" aria-selected="false" aria-controls="h-panel" tabindex="-1" data-screen="calibration"><span class="h-tab-n">02</span> Calibration</button>
+          <button role="tab" type="button" id="tab-customize" aria-selected="false" aria-controls="h-panel" tabindex="-1" data-screen="customize"><span class="h-tab-n">03</span> Customize</button>
+          <button role="tab" type="button" id="tab-welcome" aria-selected="false" aria-controls="h-panel" tabindex="-1" data-screen="welcome"><span class="h-tab-n">04</span> Welcome</button>
+        </div>
+        <div class="h-panel" id="h-panel" role="tabpanel" aria-labelledby="tab-input">
+          <img id="h-screen" src="assets/app/input.png" width="1430" height="954" alt="HIDUSBF Input tab for a DualSense Edge: the controller picture, polling rate buttons set to 8000, filter switches and live stick readings." loading="lazy">
+        </div>
+        <div class="h-caption">
+          <span id="h-caption-text" aria-live="polite">Input: the polling rate, the filter switches and live stick readings.</span>
+          <span class="h-caption-tag">Real app screenshot</span>
+        </div>
+      </div>
+      <p class="h-fine">Taken with one DualSense Edge on an earlier version, so your window may look a little different. The numbers are from that controller and aren't a promise of what yours will do. This website can't see or change your devices.</p>
+    </section>
+
+    <section class="h-section" id="details" aria-labelledby="details-title">
+      <div class="h-top">
+        <div>
+          <p class="h-eyebrow">02 / What it does</p>
+          <h2 id="details-title">What you can change.</h2>
+        </div>
+        <p class="h-intro">Polling rate is for USB mice, keyboards and controllers. The other tools are mainly for PlayStation controllers.</p>
+      </div>
+
+      <article class="h-feature">
+        <div class="h-copy">
+          <span class="h-num">01 — Polling rate</span>
+          <h3>Set how often<br>your device reports.</h3>
+          <p>Polling rate is how many times a second a USB device sends its input to your PC. Choose 250, 500, 1000, 2000, 4000 or 8000 Hz for a mouse, keyboard or controller. HIDUSBF sets up SweetLow's hidusbf driver, and you restart the device from the same page.</p>
+          <p>Not every device can keep up. A PlayStation controller on a USB cable shows the reports per second it really sends, so you can check.</p>
+          <a class="h-link" href="#features" data-target="input">See the Input tab <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="h-art" aria-hidden="true">
+          <div class="h-art-label">Polling rate / Reports in 4 ms <span>Illustration</span></div>
+          <div class="h-combs">
+            <div><b>1000 Hz</b><i style="--n:4"></i></div>
+            <div><b>2000 Hz</b><i style="--n:8"></i></div>
+            <div><b>4000 Hz</b><i style="--n:16"></i></div>
+            <div class="on"><b>8000 Hz</b><i style="--n:32"></i></div>
+          </div>
+          <div class="h-art-foot"><span>Calculated spacing</span><span>Not a measurement</span></div>
+        </div>
+      </article>
+
+      <article class="h-feature">
+        <div class="h-copy">
+          <span class="h-num">02 — Calibration</span>
+          <h3>Re-center your sticks.<br>Choose how they feel.</h3>
+          <p>Correct a stick's center, teach the controller each stick's full range, or adjust the stored values by hand. Smart calibration measures both sticks again, then sets the feel to Loose, Natural or Tight.</p>
+          <p>Changes stay temporary until you save them, and a snapshot is kept each time the controller connects, so you can go back. It needs a USB cable, and it can't repair a worn or damaged stick.</p>
+          <a class="h-link" href="#features" data-target="calibration">See the Calibration tab <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="h-art h-art-center" aria-hidden="true">
+          <div class="h-art-label">Smart calibration / Feel <span>Illustration</span></div>
+          <div class="h-feel"><span>Loose</span><span class="on">Natural</span><span>Tight</span></div>
+          <div class="h-ticks"><i></i><i></i><i></i><i></i><i></i><b></b><i></i><i></i><i></i><i></i><i></i></div>
+          <p class="h-art-note">Loose is lighter and quicker. Tight is steadier.</p>
+          <div class="h-art-foot h-art-foot-c"><span>Not a live control</span></div>
+        </div>
+      </article>
+
+      <article class="h-feature">
+        <div class="h-copy">
+          <span class="h-num">03 — Virtual controller</span>
+          <h3>Shape what<br>the game sees.</h3>
+          <p>Games can see a virtual Xbox 360 or DualShock 4 controller, with your own response curve on each stick. Pick a curve or drag two handles to make one, set how strong it is, and compare what you do with what the game gets on a live graph.</p>
+          <p>The two free drivers it needs are installed for you the first time you use it.</p>
+          <a class="h-link" href="#faq-steam" data-open-faq>Using it with Steam <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="h-art" aria-hidden="true">
+          <div class="h-art-label">Response curve / Example <span>Illustration</span></div>
+          <svg class="h-curve" viewBox="0 0 200 200" focusable="false">
+            <path class="grid" d="M50 0V200M100 0V200M150 0V200M0 50H200M0 100H200M0 150H200"/>
+            <path class="base" d="M0 200 200 0"/>
+            <path class="line" d="M0 200C60 190 120 120 200 0"/>
+            <circle cx="60" cy="172" r="6"/><circle cx="130" cy="97" r="6"/>
+          </svg>
+          <div class="h-art-foot"><span>What you do</span><span>What the game gets</span></div>
+        </div>
+      </article>
+
+      <article class="h-feature">
+        <div class="h-copy">
+          <span class="h-num">04 — Customize</span>
+          <h3>Set the lights.<br>Tune the triggers.</h3>
+          <p>On a supported PlayStation controller you can set the light bar, player LEDs and mute LED, add resistance to L2 and R2, and test the rumble. A SteelSeries Apex Pro TKL Gen 3 keyboard gets per-key lighting.</p>
+          <p>Lights and trigger resistance are saved in a profile and come back each time the controller connects. Steam or a game can still change them while it runs.</p>
+          <a class="h-link" href="#features" data-target="customize">See the Customize tab <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="h-art" aria-hidden="true">
+          <div class="h-art-label">Customize / Light bar <span>Illustration</span></div>
+          <div class="h-halo"></div>
+          <div class="h-swatches"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="h-art-foot h-art-foot-c"><span>A few of the colors</span></div>
+        </div>
+      </article>
+
+      <div class="h-extras">
+        <div><h3>Profiles</h3><p>Keep different setups for one controller and switch between them from the top of its page.</p></div>
+        <div><h3>Devices by name</h3><p>An overview of what's plugged in, with product names and pictures where available, not just USB IDs.</p></div>
+        <div><h3>Your own look</h3><p>Choose an accent color and a window scale, and turn off animations with Reduce motion.</p></div>
+        <div><h3>Start-up and tray</h3><p>Start with Windows if you like. Closing the window keeps HIDUSBF in the tray so lighting stays on.</p></div>
+      </div>
+    </section>
+
+    <section class="h-section" id="install" aria-labelledby="install-title">
+      <div class="h-top">
+        <div>
+          <p class="h-eyebrow">03 / Install</p>
+          <h2 id="install-title">Three steps.</h2>
+        </div>
+        <p class="h-intro">You'll need administrator rights, because HIDUSBF installs a driver.</p>
+      </div>
+      <ol class="h-steps">
+        <li>
+          <span class="h-step-n">1</span>
+          <h3>Run the installer</h3>
+          <p>It adds HIDUSBF to Program Files and the Start menu. The installer isn't code-signed yet, so if SmartScreen warns you, choose More info, then Run anyway.</p>
+        </li>
+        <li>
+          <span class="h-step-n">2</span>
+          <h3>Open HIDUSBF</h3>
+          <p>Say yes when Windows asks for permission. HIDUSBF installs the driver itself, then offers a short tour.</p>
+        </li>
+        <li>
+          <span class="h-step-n">3</span>
+          <h3>Pick a device and a rate</h3>
+          <p>Open the device, turn on the filter, choose a rate and press Restart device. If the rate doesn't change, re-plug it or reboot.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="h-section h-notes" id="good-to-know" aria-labelledby="notes-title">
+      <p class="h-eyebrow">Good to know</p>
+      <div class="h-notes-left">
+        <h2 id="notes-title">Before you<br>download.</h2>
+        <div class="h-guide">
+          <h3>Shopping for a controller?</h3>
+          <p>Hall effect, TMR, JS13, 3-pin or 5-pin: our guide explains the labels and keeps measured results apart from maker claims.</p>
+          <a class="h-link" href="information/">Read the controller guide <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+      <div class="h-faq">
+        <details open>
+          <summary>Which controllers work?<span aria-hidden="true">+</span></summary>
+          <p>Genuine DualSense and DualSense Edge controllers get center, range, fine-tune and Smart calibration. DualShock 4 (V1 and V2) gets center and range. Clones aren't supported. Xbox, Nintendo, GameSir, SCUF and other controllers get the polling rate only.</p>
+        </details>
+        <details>
+          <summary>Will my device reach 8,000 Hz?<span aria-hidden="true">+</span></summary>
+          <p>Not always. It depends on the device, your USB controller and Windows. Rates above 1,000 Hz need Memory Integrity turned off. That's a Windows security setting, so decide whether the change is worth it for you. A higher rate means more frequent reports. It doesn't guarantee lower input lag or a faster sensor.</p>
+        </details>
+        <details>
+          <summary>Does calibration stick on a DualSense Edge?<span aria-hidden="true">+</span></summary>
+          <p>It may not. Edge support is experimental, because its stick modules have their own memory. Without a hardware write-protect mod, a saved calibration may not survive a module swap or a restart.</p>
+        </details>
+        <details id="faq-steam">
+          <summary>Does the virtual controller work with Steam?<span aria-hidden="true">+</span></summary>
+          <p>Turn off PlayStation Controller Support in Steam's controller settings while it runs, or Steam will read the real controller as well. Games that were already open need a restart after you turn on hiding for the real controller.</p>
+        </details>
+        <details>
+          <summary>How do I check the download?<span aria-hidden="true">+</span></summary>
+          <p>Each release on <a href="https://github.com/KazboXIII/HIDUSBF-PUB/releases">GitHub</a> has a .sha256 file next to the installer. Compare it with the file you downloaded.</p>
+        </details>
+        <details>
+          <summary>How do I update?<span aria-hidden="true">+</span></summary>
+          <p>Download the newest installer from this page and run it.</p>
+        </details>
+        <details>
+          <summary>How do I remove it completely?<span aria-hidden="true">+</span></summary>
+          <p>Open Settings, go to Driver and choose Uninstall driver. That turns the filter off on every device, then removes the driver. Do this first, because uninstalling the app on its own leaves the driver in place.</p>
+        </details>
+        <details>
+          <summary>Does it send anything from my PC?<span aria-hidden="true">+</span></summary>
+          <p>Each start sends a random install ID, the HIDUSBF version and channel, the Windows build, the display language and whether an update just installed. Turn that off in Settings, under Updates. HIDUSBF can also download product pictures from manufacturers' websites, which you can turn off under Pictures.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="h-section h-next" aria-labelledby="next-title">
+      <p class="h-eyebrow">Your next step</p>
+      <h2 id="next-title">Try it on<br>your own setup.</h2>
+      <p>HIDUSBF is free. Plug in your device, install the app and see what it can do.</p>
+      <a class="button primary" id="download-final" href="https://github.com/KazboXIII/HIDUSBF-PUB/releases/latest">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg>
+        <span id="download-final-label">Download for Windows</span>
+      </a>
+      <small>Downloads from GitHub. <a href="https://github.com/KazboXIII/HIDUSBF-PUB/releases">See all releases</a></small>
+    </section>
+  </div>
 </main>
 
-<footer>
-  <p>hidusbf by SweetLow (Public Domain). Drivers for Windows Vista and later signed by Jeshua Starr Scully with help from overclock.net. Drivers for Windows 8.1 and later signed by Battle Beaver Customs. Controller calibration ported from dualshock-tools by the_al (MIT). Fonts: IBM Plex (SIL Open Font License).</p>
-  <p class="links"><a href="information/">Controller information</a><a href="https://github.com/KazboXIII/HIDUSBF-PUB/releases">Releases</a><a href="https://github.com/KazboXIII/HIDUSBF-PUB/issues">Report a problem</a><a href="https://github.com/LordOfMice/hidusbf">hidusbf</a></p>
+<footer class="h-footer">
+  <div class="h-footer-top">
+    <a class="brand" href="#top"><img src="assets/icon.svg" alt="" width="28" height="28">HIDUSBF</a>
+    <p class="links"><a href="information/">Controller information</a><a href="https://github.com/KazboXIII/HIDUSBF-PUB/releases">Releases</a><a href="https://github.com/KazboXIII/HIDUSBF-PUB/issues">Report a problem</a><a href="https://github.com/LordOfMice/hidusbf">hidusbf</a></p>
+    <a class="h-back" href="#top">Back to top <span aria-hidden="true">↑</span></a>
+  </div>
+  <p class="h-credits">hidusbf by SweetLow (Public Domain). Drivers for Windows Vista and later signed by Jeshua Starr Scully with help from overclock.net. Drivers for Windows 8.1 and later signed by Battle Beaver Customs. Controller calibration ported from dualshock-tools by the_al (MIT). Fonts: IBM Plex (SIL Open Font License).</p>
 </footer>
+
+<dialog id="h-lightbox" aria-label="Enlarged screenshot">
+  <button id="h-lightbox-close" type="button">Close</button>
+  <img id="h-lightbox-img" alt="">
+</dialog>
 
 <script>
 // Point the download button straight at the newest installer (falls back to the Releases page).
@@ -124,10 +280,13 @@ fetch('https://api.github.com/repos/KazboXIII/HIDUSBF-PUB/releases/latest')
     var a = (rel.assets || []).filter(function (x) { return /-Setup\.exe$/.test(x.name); })[0];
     if (!a) return;
     document.getElementById('download').href = a.browser_download_url;
+    document.getElementById('download-final').href = a.browser_download_url;
     document.getElementById('download-label').textContent = 'Download ' + rel.tag_name.replace(/^v/, '');
+    document.getElementById('download-final-label').textContent = 'Download ' + rel.tag_name.replace(/^v/, '');
     document.getElementById('download-meta').textContent = 'Free · Windows 8.1, 10 and 11 · 64-bit · ' + (a.size / 1048576).toFixed(1) + ' MB';
   })
   .catch(function () {});
 </script>
+<script src="home.js" defer></script>
 </body>
 </html>

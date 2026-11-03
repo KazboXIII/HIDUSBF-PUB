@@ -25,6 +25,7 @@ Report problems in [Issues](https://github.com/KazboXIII/HIDUSBF-PUB/issues).
 ## Website
 
 GitHub Pages serves this repository's `main` branch at https://hidusbf.app/.
+The homepage's sections below the hero use `home.css` and `home.js`, so the shared `style.css` keeps serving the hero, the navigation and the other pages unchanged. The screenshots in `assets/app/` are real app captures.
 The controller information guide lives in `information/index.html` and uses the shared stylesheet plus `information/information.css`. It requires no build step, JavaScript or third-party runtime dependency.
 
 When updating the guide, check exact hardware/firmware revisions against the cited primary documentation, distinguish vendor claims from measurements, and update the research date only for a substantive source review. Keep inline source anchors, the source notes and homepage navigation working. The guide's polling chart shows calculated intervals, not latency measurements.
