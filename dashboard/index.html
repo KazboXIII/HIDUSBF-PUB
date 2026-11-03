@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard | HIDUSBF</title>
+<meta name="description" content="HIDUSBF launches and downloads.">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; connect-src https://api.github.com https://hidusbf-ping.kronussells.workers.dev; base-uri 'none'; form-action 'none'">
+<meta name="theme-color" content="#020203">
+<link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body class="dashboard-page">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="nav">
+  <a class="brand" href="../"><img src="../assets/icon.svg" alt="" width="28" height="28">HIDUSBF</a>
+  <nav aria-label="Main navigation">
+    <a href="../">The app</a>
+    <a href="../information/">Information</a>
+    <a href="./" aria-current="page">Dashboard</a>
+  </nav>
+</header>
+
+<main id="content">
+  <section class="dash-head" aria-labelledby="page-title">
+    <div>
+      <p class="eyebrow mono">DASHBOARD</p>
+      <h1 id="page-title">Launches and downloads</h1>
+      <p class="dash-lede">Launches come from the app’s anonymous counter and need your stats key. Downloads are public GitHub numbers. All dates are UTC.</p>
+    </div>
+    <div class="dash-actions">
+      <button class="button" type="button" id="refresh">Refresh</button>
+      <p class="dash-status" id="status" role="status"></p>
+    </div>
+  </section>
+
+  <section class="dash-section" aria-labelledby="usage-title">
+    <div class="section-head">
+      <h2 id="usage-title" tabindex="-1">Usage</h2>
+      <button class="link-button" type="button" id="lock" hidden>Lock</button>
+    </div>
+
+    <form class="unlock" id="unlock-form" autocomplete="on">
+      <div class="unlock-copy">
+        <h3>Enter your stats key</h3>
+        <p>It stays in this tab’s memory and goes only to the launch counter. Reloading or leaving the page forgets it. Your password manager can save it for you.</p>
+      </div>
+      <div class="unlock-fields">
+        <input class="visually-hidden" type="text" name="username" autocomplete="username" value="HIDUSBF stats" tabindex="-1" aria-hidden="true" readonly>
+        <label for="stats-key">Stats key</label>
+        <div class="unlock-row">
+          <input id="stats-key" name="password" type="password" autocomplete="current-password" spellcheck="false" autocapitalize="off" required aria-describedby="unlock-error">
+          <button class="button primary" type="submit" id="unlock-button">Unlock</button>
+        </div>
+        <p class="form-error" id="unlock-error" role="alert"></p>
+      </div>
+    </form>
+
+    <div id="usage" hidden></div>
+  </section>
+
+  <section class="dash-section" aria-labelledby="downloads-title">
+    <div class="section-head">
+      <h2 id="downloads-title">Downloads</h2>
+    </div>
+    <div id="downloads"><p class="state" role="status">Loading downloads…</p></div>
+  </section>
+
+  <section class="dash-section" aria-labelledby="definitions-title">
+    <div class="section-head">
+      <h2 id="definitions-title">What the numbers mean</h2>
+    </div>
+    <dl class="definitions">
+      <div><dt>Launch</dt><dd>One start of the app. Starting it three times in a day is three launches.</dd></div>
+      <div><dt>Active install</dt><dd>An install that started at least once in that period. Each is a random id made once per install, so one person on two PCs counts as two, and a fresh Windows counts as new. It isn’t a count of people.</dd></div>
+      <div><dt>What the counter misses</dt><dd>Anyone who turned off “Send anonymous usage counts”, and anything older than the counter: public builds count from 4.2.0, experimental builds from exp.32. Nothing before the first counted day exists.</dd></div>
+      <div><dt>Today</dt><dd>The UTC day still running, so its number is still growing. Charts draw it as an outlined bar.</dd></div>
+      <div><dt>Installs seen</dt><dd>Every install the counter has ever heard from, active or not.</dd></div>
+      <div><dt>Auto update</dt><dd>A first start right after an update that installed itself, when that setting is on.</dd></div>
+      <div><dt>Download</dt><dd>GitHub’s lifetime count for one file. It counts every fetch, including repeats and in-app updates, so it isn’t a count of people. GitHub gives no dates, which is why there’s no downloads-per-day chart.</dd></div>
+      <div><dt>Installer and checksum</dt><dd>The Setup .exe and its .sha256 file. They’re kept apart because the checksum is only used to check a download, and the app’s updater fetches it too.</dd></div>
+      <div><dt>Public and experimental</dt><dd>Download counts cover the public repository. Experimental builds live in a private repository this page can’t read, so their downloads aren’t included. Usage does cover both.</dd></div>
+    </dl>
+  </section>
+</main>
+
+<footer>
+  <p class="links"><a href="../">The app</a><a href="https://github.com/KazboXIII/HIDUSBF/releases">Releases</a><a href="../information/">Controller information</a></p>
+</footer>
+
+<noscript><p class="state noscript">This dashboard needs JavaScript to load its numbers.</p></noscript>
+<script type="module" src="dashboard.js"></script>
+</body>
+</html>
