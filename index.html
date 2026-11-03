@@ -20,7 +20,7 @@
   <nav>
     <a href="#features">Features</a>
     <a href="#install">Install</a>
-    <a href="https://github.com/KazboXIII/HIDUSBF/releases">Releases</a>
+    <a href="https://github.com/KazboXIII/HIDUSBF-PUB/releases">Releases</a>
     <a href="information/">Information</a>
   </nav>
 </header>
@@ -33,7 +33,7 @@
     <h1>HIDUSBF</h1>
     <p class="lede">Overclock the polling rate of your mouse, keyboard or controller, and calibrate your controller's sticks. All in one place.</p>
     <div class="cta">
-      <a class="button primary" id="download" href="https://github.com/KazboXIII/HIDUSBF/releases/latest">
+      <a class="button primary" id="download" href="https://github.com/KazboXIII/HIDUSBF-PUB/releases/latest">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg>
         <span id="download-label">Download for Windows</span>
       </a>
@@ -112,12 +112,12 @@
 
 <footer>
   <p>hidusbf by SweetLow (Public Domain). Drivers for Windows Vista and later signed by Jeshua Starr Scully with help from overclock.net. Drivers for Windows 8.1 and later signed by Battle Beaver Customs. Controller calibration ported from dualshock-tools by the_al (MIT). Fonts: IBM Plex (SIL Open Font License).</p>
-  <p class="links"><a href="information/">Controller information</a><a href="https://github.com/KazboXIII/HIDUSBF/releases">Releases</a><a href="https://github.com/KazboXIII/HIDUSBF/issues">Report a problem</a><a href="https://github.com/LordOfMice/hidusbf">hidusbf</a></p>
+  <p class="links"><a href="information/">Controller information</a><a href="https://github.com/KazboXIII/HIDUSBF-PUB/releases">Releases</a><a href="https://github.com/KazboXIII/HIDUSBF-PUB/issues">Report a problem</a><a href="https://github.com/LordOfMice/hidusbf">hidusbf</a></p>
 </footer>
 
 <script>
 // Point the download button straight at the newest installer (falls back to the Releases page).
-fetch('https://api.github.com/repos/KazboXIII/HIDUSBF/releases/latest')
+fetch('https://api.github.com/repos/KazboXIII/HIDUSBF-PUB/releases/latest')
   .then(function (r) { return r.ok ? r.json() : null; })
   .then(function (rel) {
     if (!rel) return;

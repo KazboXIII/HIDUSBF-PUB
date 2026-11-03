@@ -1,6 +1,6 @@
 // Dashboard data: fetching and adding up, no page code, so tests/dashboard.test.js can run it directly.
 
-export const RELEASES_URL = 'https://api.github.com/repos/KazboXIII/HIDUSBF/releases';
+export const RELEASES_URL = 'https://api.github.com/repos/KazboXIII/HIDUSBF-PUB/releases';
 export const STATS_URL = 'https://hidusbf-ping.kronussells.workers.dev/stats';
 const PER_PAGE = 100;
 const MAX_PAGES = 20;
