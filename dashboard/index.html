@@ -77,7 +77,9 @@
       <div><dt>Launch</dt><dd>One start of the app. Starting it three times in a day is three launches.</dd></div>
       <div><dt>Active install</dt><dd>An install that started at least once in that period. Each is a random id made once per install, so one person on two PCs counts as two, and a fresh Windows counts as new. It isn’t a count of people.</dd></div>
       <div><dt>What the counter misses</dt><dd>Anyone who turned off “Send anonymous usage counts”, and anything older than the counter: public builds count from 4.2.0, experimental builds from exp.32. Nothing before the first counted day exists.</dd></div>
-      <div><dt>Today</dt><dd>The UTC day still running, so its number is still growing. Charts draw it as an outlined bar.</dd></div>
+      <div><dt>Open</dt><dd>An install the counter heard from in the last 20 minutes. Builds from exp.48 check in every 15 minutes while the app is open, including when it sits in the tray; older builds only say so when they start, so they count as open for 20 minutes after a start.</dd></div>
+      <div><dt>Uninstall</dt><dd>One uninstall through Windows, from builds that include the count (exp.48 on). Updates don’t count, and neither does deleting the folder by hand.</dd></div>
+      <div><dt>The last point</dt><dd>The time step still running, so its launches and uninstalls are still growing. The readout says “so far”.</dd></div>
       <div><dt>Installs seen</dt><dd>Every install the counter has ever heard from, active or not.</dd></div>
       <div><dt>Auto update</dt><dd>A first start right after an update that installed itself, when that setting is on.</dd></div>
       <div><dt>Download</dt><dd>GitHub’s lifetime count for one file. It counts every fetch, including repeats and in-app updates, so it isn’t a count of people. GitHub gives no dates, which is why there’s no downloads-per-day chart.</dd></div>

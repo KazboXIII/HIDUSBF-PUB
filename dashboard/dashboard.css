@@ -63,6 +63,28 @@
 .chart .bar.partial { fill: var(--accent-fill); stroke: var(--accent-soft); stroke-width: 1.5; }
 .chart .band { fill: transparent; }
 .chart .band.on { fill: rgba(185, 162, 255, .08); }
+/* Lines: public violet, experimental amber (checked for colour-blind separation and 3:1 contrast on the surface). */
+.dashboard-page { --line-public: #8B5CF6; --line-experimental: #D97706; }
+.range-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 28px 0 12px; }
+.range-label { margin-right: 6px; color: var(--soft); font-size: 15px; }
+.range { min-height: 36px; padding: 6px 14px; border: 1px solid var(--line-hi); border-radius: 999px; background: var(--surface); color: var(--label); font-size: 14px; }
+.range:hover { border-color: var(--accent); color: var(--text); }
+.range[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-fill); color: var(--text); }
+#series[aria-busy="true"] .charts { opacity: .6; }
+.chart-note { margin: 2px 0 0; color: var(--soft); font-size: 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 10px 0 0; padding: 0; list-style: none; color: var(--label); font-size: 14px; }
+.legend li { display: flex; align-items: center; gap: 7px; }
+.swatch { display: inline-block; width: 16px; height: 3px; border-radius: 2px; }
+.swatch.s-public { background: var(--line-public); }
+.swatch.s-exp { background: var(--line-experimental); }
+.chart .line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .line.s-public { stroke: var(--line-public); }
+.chart .line.s-exp { stroke: var(--line-experimental); }
+.chart .solo.s-public, .chart .dot.s-public { fill: var(--line-public); }
+.chart .solo.s-exp, .chart .dot.s-exp { fill: var(--line-experimental); }
+.chart .dot { stroke: var(--surface); stroke-width: 2; }
+.chart .crosshair { stroke: var(--soft); stroke-width: 1; stroke-dasharray: 3 3; }
+.chart .no-data { fill: var(--soft); font: 400 14px var(--sans); }
 
 /* Details and tables */
 .daily { margin-top: 12px; border: 1px solid var(--line-hi); border-radius: 14px; background: var(--surface); }
@@ -140,4 +162,8 @@
 }
 @media (forced-colors: active) {
   .chart .bar, .cell-bar .fill, .breakdown .bar-fill { fill: CanvasText; background: CanvasText; forced-color-adjust: none; }
+  .chart .line { stroke: CanvasText; forced-color-adjust: none; }
+  .chart .line.s-exp { stroke-dasharray: 6 4; }
+  .chart .dot, .chart .solo, .swatch { fill: CanvasText; background: CanvasText; forced-color-adjust: none; }
+  .range[aria-pressed="true"] { border: 2px solid Highlight; }
 }

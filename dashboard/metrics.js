@@ -2,6 +2,7 @@
 
 export const RELEASES_URL = 'https://api.github.com/repos/KazboXIII/HIDUSBF-PUB/releases';
 export const STATS_URL = 'https://hidusbf-ping.kronussells.workers.dev/stats';
+export const SERIES_URL = 'https://hidusbf-ping.kronussells.workers.dev/stats/series';
 const PER_PAGE = 100;
 const MAX_PAGES = 20;
 const MAX_DAYS = 30;
@@ -182,6 +183,11 @@ export function normalizeStats(raw) {
     launchesEver: count(raw.launches_ever),
     autoupdates30d: count(raw.autoupdates_30d),
     autoupdatesEver: count(raw.autoupdates_ever),
+    openNow: count(raw.open_now),
+    openPublic: openOf(raw, 'public'),
+    openExperimental: openOf(raw, 'experimental'),
+    uninstalls30d: count(raw.uninstalls_30d),
+    uninstallsEver: count(raw.uninstalls_ever),
     days,
     versions: breakdown(raw.installs_per_version, r => `${r.version} (${r.channel})`),
     channels: breakdown(raw.installs_per_channel, r => channelName(r.channel)),
@@ -189,6 +195,73 @@ export function normalizeStats(raw) {
     langs: breakdown(raw.installs_per_lang, r => String(r.lang)),
     empty: days.length === 0,
   };
+}
+
+function openOf(raw, channel) {
+  if (count(raw.open_now) === null) return null;
+  const row = list(raw.open_now_by_channel).find(r => r && r.channel === channel);
+  return row ? count(row.installs) || 0 : 0;
+}
+
+// ---- lines over a chosen range ----
+
+export const RANGES = [
+  { key: '1h', label: '1 hour' }, { key: '4h', label: '4 hours' }, { key: '8h', label: '8 hours' }, { key: '1d', label: '1 day' },
+  { key: '7d', label: '7 days' }, { key: '30d', label: '30 days' }, { key: '90d', label: '90 days' },
+];
+const SERIES_CHANNELS = ['public', 'experimental'];
+const MAX_POINTS = 200;
+const isTime = v => typeof v === 'number' && Number.isInteger(v) && v >= 0;
+
+export async function fetchSeries(key, range, fetchFn = fetch) {
+  if (!RANGES.some(r => r.key === range)) throw new LoadError('shape', 'unknown range');
+  let response;
+  try {
+    response = await fetchFn(`${SERIES_URL}?range=${range}`, {
+      headers: { Authorization: `Bearer ${key}` },
+      cache: 'no-store',
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+    });
+  } catch (e) {
+    throw new LoadError('network', 'network failure');
+  }
+  if (response.status === 401 || response.status === 403 || response.status === 404) throw new LoadError('key', 'key refused');
+  if (!response.ok) throw new LoadError('server', `HTTP ${response.status}`);
+  let raw;
+  try { raw = await response.json(); } catch (e) { throw new LoadError('shape', 'not JSON'); }
+  return normalizeSeries(raw);
+}
+
+// Every point of the range, oldest first, with each channel's value or null. Null means "not counted then" and draws as a gap:
+// open before the first 15-minute check, launches and uninstalls before counting began. A point counted but quiet is 0.
+export function normalizeSeries(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw) || !isTime(raw.step) || raw.step <= 0 || !isTime(raw.from)
+    || !isTime(raw.to) || raw.to < raw.from || !Array.isArray(raw.rows) || (raw.to - raw.from) / raw.step > MAX_POINTS) {
+    throw new LoadError('shape', 'unexpected series');
+  }
+  const { step, from, to } = raw;
+  const daily = step >= 86400;
+  const tracking = isTime(raw.tracking_since) ? raw.tracking_since : null;
+  const trackStart = tracking === null ? null : Math.floor(tracking / step) * step;
+  const firstDay = isDay(raw.first_day) ? Date.parse(`${raw.first_day}T00:00:00Z`) / 1000 : null;
+  const launchStart = daily ? firstDay : trackStart;
+  const byKey = new Map();
+  for (const r of raw.rows) if (r && isTime(r.t) && SERIES_CHANNELS.includes(r.channel)) byKey.set(`${r.t}|${r.channel}`, r);
+  const from0 = Math.floor(from / step) * step;
+  const points = [];
+  for (let t = from0; t <= to; t += step) {
+    const p = { t, partial: t === to, open: {}, launches: {}, uninstalls: {}, installs: {} };
+    for (const c of SERIES_CHANNELS) {
+      const r = byKey.get(`${t}|${c}`);
+      p.open[c] = r && count(r.open) !== null ? r.open : null;
+      p.launches[c] = launchStart !== null && t >= launchStart ? (r ? count(r.launches) || 0 : 0) : null;
+      p.uninstalls[c] = trackStart !== null && t >= trackStart ? (r ? count(r.uninstalls) || 0 : 0) : null;
+      p.installs[c] = daily && firstDay !== null && t >= firstDay ? (r ? count(r.installs) || 0 : 0) : null;
+    }
+    points.push(p);
+  }
+  return { step, daily, from: from0, to, trackingSince: tracking, points };
 }
 
 // The biggest n rows plus an "Other" row for the rest, each with its share of the whole list.
@@ -227,6 +300,17 @@ export function fmtDay(value, withYear = true) {
   if (value === null || value === undefined || Number.isNaN(d.getTime())) return '—';
   const text = `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
   return withYear ? `${text} ${d.getUTCFullYear()}` : text;
+}
+
+// A point's time in UTC: "14:15", "3 Nov, 14:00", or "3 Nov" for a day.
+export function fmtBucket(seconds, step, withDay = true) {
+  const d = new Date(seconds * 1000);
+  if (typeof seconds !== 'number' || Number.isNaN(d.getTime())) return '—';
+  const day = `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
+  if (step >= 86400) return day;
+  const pad = v => String(v).padStart(2, '0');
+  const time = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+  return withDay ? `${day}, ${time}` : time;
 }
 
 export function fmtTime(value) {

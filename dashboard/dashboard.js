@@ -1,8 +1,8 @@
 // Dashboard page. Everything goes through textContent and setAttribute, so no fetched string is ever parsed as HTML.
 // The stats key lives only in the `key` variable below: it isn't put in the URL or in any storage.
 import {
-  channelName, describeError, fetchReleases, fetchStats, fmtDay, fmtNumber, fmtShare, fmtTime, niceTicks,
-  summarizeDownloads, topWithOther,
+  RANGES, channelName, describeError, fetchReleases, fetchSeries, fetchStats, fmtBucket, fmtDay, fmtNumber, fmtShare, fmtTime,
+  niceTicks, summarizeDownloads, topWithOther,
 } from './metrics.js';
 
 const $ = id => document.getElementById(id);
@@ -147,6 +147,8 @@ let charts = [];
 function lock(message = '') {
   key = null;
   usageRun++;
+  seriesRun++;
+  lastSeries = null;
   lastUsage = null;
   updated.usage = null;
   charts = [];
@@ -206,18 +208,25 @@ function renderUsage(s, staleMessage) {
     $('usage').replaceChildren(...parts);
     return;
   }
-  parts.push(el('dl', { class: 'tiles tiles-three' },
+  const openNote = s.openNow === null
+    ? 'Not counted by this version of the counter'
+    : `${fmtNumber(s.openPublic)} public · ${fmtNumber(s.openExperimental)} experimental, heard from in the last 20 minutes`;
+  parts.push(el('dl', { class: 'tiles' },
+    tile('Open right now', fmtNumber(s.openNow), openNote),
     tile('Launches, last 30 days', fmtNumber(s.launches30d), `${fmtNumber(s.launchesEver)} since ${fmtDay(s.firstDay)}`),
-    tile('Active today', fmtNumber(s.activeToday), `Installs started on ${fmtDay(s.today, false)} so far`),
+    tile('Active today', fmtNumber(s.activeToday), `Installs started or open on ${fmtDay(s.today, false)} so far`),
     tile('Active, last 7 days', fmtNumber(s.activeWeek), 'Installs, each counted once'),
     tile('Active, last 30 days', fmtNumber(s.activeMonth), 'Installs, each counted once'),
     tile('Installs seen', fmtNumber(s.installsEver), `All time, since ${fmtDay(s.firstDay)}`),
+    tile('Uninstalls, last 30 days', fmtNumber(s.uninstalls30d), `${fmtNumber(s.uninstallsEver)} since counting began`),
     tile('Auto updates, last 30 days', fmtNumber(s.autoupdates30d), `${fmtNumber(s.autoupdatesEver)} all time`),
   ));
 
-  const launches = chartCard('Launches per day', s.days, d => d.launches, 'launch', 'launches');
-  const active = chartCard('Active installs per day', s.days, d => d.installs, 'active install', 'active installs');
-  parts.push(el('div', { class: 'charts' }, launches.card, active.card));
+  parts.push(rangeBar());
+  const seriesBox = el('div', { id: 'series', 'aria-live': 'polite' });
+  if (lastSeries && lastSeries.range === range) seriesBox.append(el('p', { class: 'state' }, 'Updating the charts…'));
+  else seriesBox.append(el('p', { class: 'state', role: 'status' }, 'Loading the charts…'));
+  parts.push(seriesBox);
 
   const rows = [...s.days].reverse().map(d => el('tr', {},
     el('th', { scope: 'row' }, fmtDay(d.day) + (d.partial ? ' (so far)' : '')),
@@ -226,7 +235,7 @@ function renderUsage(s, staleMessage) {
     el('td', {}, fmtNumber(d.publicLaunches)),
     el('td', {}, fmtNumber(d.experimentalLaunches))));
   parts.push(el('details', { class: 'daily' },
-    el('summary', {}, 'Daily numbers as a table'),
+    el('summary', {}, 'Daily numbers as a table, last 30 days'),
     el('div', { class: 'table-wrap', tabindex: '0', role: 'region', 'aria-label': 'Daily numbers' },
       el('table', { class: 'dash-table' },
         el('caption', { class: 'visually-hidden' }, 'Launches and active installs per UTC day, newest first'),
@@ -246,9 +255,8 @@ function renderUsage(s, staleMessage) {
     breakdownCard('Windows build', s.os),
     breakdownCard('Language', s.langs)));
   $('usage').replaceChildren(...parts);
-
-  charts = [launches, active];
-  for (const c of charts) c.draw();
+  if (lastSeries && lastSeries.range === range) renderSeries(lastSeries);
+  loadSeries();
 }
 
 function breakdownCard(title, rows, extra = '') {
@@ -265,86 +273,214 @@ function breakdownCard(title, rows, extra = '') {
   })));
 }
 
-// One bar chart: a single series on one axis. Pointer or arrow keys pick a day; the line above the chart reads it out.
-function chartCard(title, days, value, one, many) {
+// ---- lines over a chosen range ----
+
+let range = '1d';
+let lastSeries = null;
+let seriesRun = 0;
+
+const SERIES = [
+  { key: 'public', name: 'Public', cls: 's-public' },
+  { key: 'experimental', name: 'Experimental', cls: 's-exp' },
+];
+
+// One row of buttons above the charts. The choice lives only in this tab's memory.
+function rangeBar() {
+  const buttons = RANGES.map(r => {
+    const b = el('button', { class: 'range', type: 'button', 'aria-pressed': r.key === range ? 'true' : 'false' }, r.label);
+    b.addEventListener('click', () => {
+      if (range === r.key) return;
+      range = r.key;
+      for (const x of buttons) x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+      loadSeries();
+    });
+    return b;
+  });
+  return el('div', { class: 'range-bar', role: 'group', 'aria-label': 'Time range for the charts' },
+    el('span', { class: 'range-label' }, 'Show the last'), buttons);
+}
+
+async function loadSeries() {
+  if (!key) return;
+  const run = ++seriesRun;
+  const want = range;
+  const busyBox = $('series');
+  if (busyBox) busyBox.setAttribute('aria-busy', 'true');
+  await track(async () => {
+    try {
+      const data = await fetchSeries(key, want);
+      if (run !== seriesRun) return;
+      lastSeries = { ...data, range: want };
+      renderSeries(lastSeries);
+    } catch (e) {
+      if (run !== seriesRun) return;
+      const message = describeError(e, 'usage');
+      if (e.kind === 'key') { lock(message); return; }
+      const box = $('series');
+      if (box) box.replaceChildren(errorBox(`${message} The charts couldn’t load.`, loadSeries));
+    } finally {
+      const box = $('series');
+      if (box) box.removeAttribute('aria-busy');
+    }
+  });
+}
+
+const sumOf = values => {
+  const known = values.filter(v => v !== null);
+  return known.length ? known.reduce((a, b) => a + b, 0) : null;
+};
+
+function renderSeries(data) {
+  const box = $('series');
+  if (!box) return;
+  const per = data.step >= 86400 ? 'day' : data.step >= 3600 ? 'hour' : '15 minutes';
+  const cards = [
+    lineCard('Apps open', data.step > 900 ? `The most open at the same time in each ${per}.` : 'How many were open at each 15-minute check.',
+      data, p => p.open, 'install open', 'installs open'),
+    lineCard('Launches', `Starts per ${per}.`, data, p => p.launches, 'launch', 'launches'),
+    lineCard('Uninstalls', `Per ${per}. Counted by builds from exp.48 on.`, data, p => p.uninstalls, 'uninstall', 'uninstalls'),
+  ];
+  if (data.daily) cards.push(lineCard('Active installs', 'Installs that started or were open that day, each once.', data, p => p.installs, 'active install', 'active installs'));
+
+  const parts = [];
+  if (data.trackingSince === null) parts.push(el('p', { class: 'subnote' }, 'Open counts and uninstalls begin with the first 15-minute check after the counter update.'));
+  else if (data.trackingSince > data.from) parts.push(el('p', { class: 'subnote' }, `Open counts and uninstalls begin ${fmtBucket(data.trackingSince, 900)} UTC; earlier points are empty, not zero.`));
+  parts.push(el('div', { class: 'charts' }, cards.map(c => c.card)));
+
+  const rows = [...data.points].reverse().map(p => el('tr', {},
+    el('th', { scope: 'row' }, fmtBucket(p.t, data.step) + (p.partial ? ' (so far)' : '')),
+    el('td', {}, fmtNumber(p.open.public)),
+    el('td', {}, fmtNumber(p.open.experimental)),
+    el('td', {}, fmtNumber(sumOf(SERIES.map(s => p.launches[s.key])))),
+    el('td', {}, fmtNumber(sumOf(SERIES.map(s => p.uninstalls[s.key]))))));
+  parts.push(el('details', { class: 'daily' },
+    el('summary', {}, 'These charts as a table'),
+    el('div', { class: 'table-wrap', tabindex: '0', role: 'region', 'aria-label': 'Chart numbers' },
+      el('table', { class: 'dash-table' },
+        el('caption', { class: 'visually-hidden' }, 'Open installs, launches and uninstalls for the chosen range, newest first, UTC'),
+        el('thead', {}, el('tr', {},
+          el('th', { scope: 'col' }, data.step >= 86400 ? 'Date (UTC)' : 'Time (UTC)'),
+          el('th', { scope: 'col' }, 'Open, public'),
+          el('th', { scope: 'col' }, 'Open, experimental'),
+          el('th', { scope: 'col' }, 'Launches'),
+          el('th', { scope: 'col' }, 'Uninstalls'))),
+        el('tbody', {}, rows)))));
+  box.replaceChildren(...parts);
+  charts = cards;
+  for (const c of charts) c.draw();
+}
+
+// One line chart: public and experimental on one axis. Pointer or arrow keys pick a point; the line above the chart reads it out.
+// A point with no data is a gap in the line, never a zero.
+function lineCard(title, note, data, pick, one, many) {
+  const points = data.points;
+  const n = points.length;
   const readout = el('p', { class: 'readout' });
+  const legend = el('ul', { class: 'legend', 'aria-label': 'Lines' }, SERIES.map(s =>
+    el('li', {}, el('span', { class: `swatch ${s.cls}`, 'aria-hidden': 'true' }), s.name)));
   const figure = svg('svg', {
-    class: 'chart', role: 'slider', tabindex: '0', 'aria-label': `${title}. Arrow keys move between days.`,
-    'aria-orientation': 'horizontal', 'aria-valuemin': '0', 'aria-valuemax': String(days.length - 1),
+    class: 'chart', role: 'slider', tabindex: '0', 'aria-label': `${title}. Arrow keys move between points.`,
+    'aria-orientation': 'horizontal', 'aria-valuemin': '0', 'aria-valuemax': String(Math.max(0, n - 1)),
   });
   const box = el('div', { class: 'chart-box' }, figure);
-  const card = el('div', { class: 'chart-card' }, el('h3', {}, title), readout, box);
-  let selected = days.length - 1;
-  let bands = [];
-  let slot = 1;
-  let left = 0;
+  const card = el('div', { class: 'chart-card' }, el('h3', {}, title), el('p', { class: 'chart-note' }, note), legend, readout, box);
+  const known = i => SERIES.some(s => pick(points[i])[s.key] !== null);
+  let latest = n - 1;
+  while (latest > 0 && !known(latest)) latest--;
+  if (!known(latest)) latest = n - 1;
+  let selected = latest;
+  let xAt = () => 0;
+  let yAt = () => 0;
+  let cross = null;
+  let dots = [];
 
-  const text = i => {
-    const d = days[i];
-    const date = fmtDay(d.day);
-    const unit = value(d) === 1 ? one : many;
-    return { date: d.partial ? `${date}, so far` : date, amount: `${fmtNumber(value(d))} ${unit}` };
+  const words = i => {
+    const p = points[i];
+    const values = pick(p);
+    const when = fmtBucket(p.t, data.step) + (data.step >= 86400 ? '' : ' UTC') + (p.partial ? ', so far' : '');
+    const total = sumOf(SERIES.map(s => values[s.key]));
+    const split = SERIES.map(s => `${s.name} ${values[s.key] === null ? 'no data' : fmtNumber(values[s.key])}`).join(' · ');
+    const amount = total === null ? 'no data' : `${fmtNumber(total)} ${total === 1 ? one : many}`;
+    return { when, amount, split };
   };
 
   function select(i) {
-    selected = Math.max(0, Math.min(days.length - 1, i));
-    bands.forEach((b, n) => b.setAttribute('class', n === selected ? 'band on' : 'band'));
-    const t = text(selected);
-    readout.replaceChildren(`${t.date}: `, el('strong', {}, t.amount));
+    if (!n) return;
+    selected = Math.max(0, Math.min(n - 1, i));
+    const t = words(selected);
+    readout.replaceChildren(`${t.when}: `, el('strong', {}, t.amount), ` (${t.split})`);
     figure.setAttribute('aria-valuenow', String(selected));
-    figure.setAttribute('aria-valuetext', `${t.date}: ${t.amount}`);
+    figure.setAttribute('aria-valuetext', `${t.when}: ${t.amount}, ${t.split}`);
+    if (cross) {
+      const x = xAt(selected);
+      cross.setAttribute('x1', x); cross.setAttribute('x2', x);
+      dots.forEach((dot, k) => {
+        const v = pick(points[selected])[SERIES[k].key];
+        if (v === null) { dot.setAttribute('visibility', 'hidden'); return; }
+        dot.setAttribute('visibility', 'visible');
+        dot.setAttribute('cx', x); dot.setAttribute('cy', yAt(v));
+      });
+    }
   }
 
   function draw() {
     const width = Math.max(box.clientWidth, 240);
     const height = 220;
-    const top = 8;
+    const top = 10;
     const bottom = 26;
     const plot = height - top - bottom;
-    const ticks = niceTicks(Math.max(...days.map(value)));
-    const max = ticks[ticks.length - 1];
-    const y = v => top + plot - (v / max) * plot;
-    left = 8 + String(fmtNumber(max)).length * 8;
-    const right = 4;
-    slot = (width - left - right) / days.length;
+    let max = 0;
+    for (const p of points) for (const s of SERIES) { const v = pick(p)[s.key]; if (v !== null && v > max) max = v; }
+    const ticks = niceTicks(max);
+    const top_ = ticks[ticks.length - 1];
+    yAt = v => top + plot - (v / top_) * plot;
+    const left = 10 + String(fmtNumber(top_)).length * 8;
+    const right = 10;
+    const span = width - left - right;
+    xAt = i => left + (n < 2 ? span / 2 : (i * span) / (n - 1));
     figure.setAttribute('viewBox', `0 0 ${width} ${height}`);
     const nodes = [];
     for (const t of ticks) {
-      nodes.push(svg('line', { class: 'grid-line', x1: left, x2: width - right, y1: y(t), y2: y(t) }));
-      const label = svg('text', { class: 'axis-text', x: left - 8, y: y(t) + 4, 'text-anchor': 'end' });
+      nodes.push(svg('line', { class: 'grid-line', x1: left, x2: width - right, y1: yAt(t), y2: yAt(t) }));
+      const label = svg('text', { class: 'axis-text', x: left - 8, y: yAt(t) + 4, 'text-anchor': 'end' });
       label.textContent = fmtNumber(t);
       nodes.push(label);
     }
-    bands = days.map((d, i) => {
-      const bandWidth = Math.min(slot, 44);
-      const band = svg('rect', { class: 'band', x: left + i * slot + (slot - bandWidth) / 2, y: top, width: bandWidth, height: plot, rx: 2 });
-      nodes.push(band);
-      return band;
-    });
-    const barWidth = Math.max(2, Math.min(24, slot - 2));
-    days.forEach((d, i) => {
-      const v = value(d);
-      if (v > 0) {
-        const x = left + i * slot + (slot - barWidth) / 2;
-        const h = Math.max(2, plot + top - y(v));
-        const r = Math.min(4, barWidth / 2, h);
-        const base = top + plot;
-        nodes.push(svg('path', {
-          class: d.partial ? 'bar partial' : 'bar',
-          d: `M${x} ${base}V${base - h + r}Q${x} ${base - h} ${x + r} ${base - h}H${x + barWidth - r}Q${x + barWidth} ${base - h} ${x + barWidth} ${base - h + r}V${base}Z`,
-        }));
+    let any = false;
+    for (const s of SERIES) {
+      let d = '';
+      let down = false;
+      for (let i = 0; i < n; i++) {
+        const v = pick(points[i])[s.key];
+        if (v === null) { down = false; continue; }
+        any = true;
+        d += `${down ? 'L' : 'M'}${xAt(i).toFixed(1)} ${yAt(v).toFixed(1)}`;
+        const before = i > 0 ? pick(points[i - 1])[s.key] : null;
+        const after = i < n - 1 ? pick(points[i + 1])[s.key] : null;
+        if (before === null && after === null) nodes.push(svg('circle', { class: `solo ${s.cls}`, cx: xAt(i), cy: yAt(v), r: 3 }));
+        down = true;
       }
-    });
-    // Date labels: never more than fit side by side, counted back from the newest day so today always has one.
-    const every = Math.max(1, Math.ceil(days.length / Math.max(1, Math.floor((width - left) / 62))));
-    for (let i = days.length - 1; i >= 0; i -= every) {
-      const center = left + i * slot + slot / 2;
-      const anchor = center > width - 26 ? 'end' : center < left + 20 ? 'start' : 'middle';
+      if (d) nodes.push(svg('path', { class: `line ${s.cls}`, d }));
+    }
+    if (!any) {
+      const empty = svg('text', { class: 'no-data', x: left + span / 2, y: top + plot / 2, 'text-anchor': 'middle' });
+      empty.textContent = 'No data in this range yet';
+      nodes.push(empty);
+    }
+    cross = svg('line', { class: 'crosshair', x1: 0, x2: 0, y1: top, y2: top + plot });
+    nodes.push(cross);
+    dots = SERIES.map(s => { const c = svg('circle', { class: `dot ${s.cls}`, r: 4, visibility: 'hidden' }); nodes.push(c); return c; });
+    // Time labels: never more than fit side by side, counted back from the newest point so it always has one.
+    const fit = Math.max(1, Math.floor(span / (data.step >= 86400 || data.range === '1h' || data.range === '4h' ? 60 : 110)));
+    const every = Math.max(1, Math.ceil(n / fit));
+    for (let i = n - 1; i >= 0; i -= every) {
+      const center = xAt(i);
+      const anchor = center > width - 40 ? 'end' : center < left + 30 ? 'start' : 'middle';
       const label = svg('text', {
         class: 'axis-text', y: height - 7, 'text-anchor': anchor,
         x: anchor === 'end' ? width - right : anchor === 'start' ? left : center,
       });
-      label.textContent = fmtDay(days[i].day, false);
+      label.textContent = fmtBucket(points[i].t, data.step, data.range !== '1h' && data.range !== '4h' && data.range !== '8h' && data.range !== '1d');
       nodes.push(label);
     }
     figure.replaceChildren(...nodes);
@@ -354,11 +490,14 @@ function chartCard(title, days, value, one, many) {
   figure.addEventListener('pointermove', e => {
     const rect = figure.getBoundingClientRect();
     const scale = rect.width ? Number(figure.viewBox.baseVal.width) / rect.width : 1;
-    select(Math.floor(((e.clientX - rect.left) * scale - left) / slot));
+    const x = (e.clientX - rect.left) * scale;
+    let best = 0;
+    for (let i = 1; i < n; i++) if (Math.abs(xAt(i) - x) < Math.abs(xAt(best) - x)) best = i;
+    select(best);
   });
-  figure.addEventListener('pointerleave', () => { if (document.activeElement !== figure) select(days.length - 1); });
+  figure.addEventListener('pointerleave', () => { if (document.activeElement !== figure) select(latest); });
   figure.addEventListener('keydown', e => {
-    const moves = { ArrowLeft: selected - 1, ArrowDown: selected - 1, ArrowRight: selected + 1, ArrowUp: selected + 1, Home: 0, End: days.length - 1 };
+    const moves = { ArrowLeft: selected - 1, ArrowDown: selected - 1, ArrowRight: selected + 1, ArrowUp: selected + 1, Home: 0, End: n - 1 };
     if (!(e.key in moves)) return;
     e.preventDefault();
     select(moves[e.key]);

@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import {
   LoadError, RELEASES_URL, STATS_URL, assetKind, buildDays, describeError, fetchReleases, fetchStats, fmtDay, fmtNumber,
   fmtShare, fmtTime, niceTicks, normalizeStats, releaseChannel, summarizeDownloads, topWithOther,
+  RANGES, SERIES_URL, fetchSeries, fmtBucket, normalizeSeries,
 } from '../dashboard/metrics.js';
 
 afterEach(() => mock.timers.reset());
@@ -287,4 +288,90 @@ test('the key field is a password field, and no script stores the key or reads i
       assert.ok(!source.includes(banned), `script uses ${banned}`);
     }
   }
+});
+
+// ---- lines over a chosen range ----
+
+const series = (over = {}) => ({
+  range: '1h', step: 900, from: 1762171200, to: 1762174800, tracking_since: 1762172100, first_day: '2026-11-02',
+  rows: [
+    { t: 1762172100, channel: 'public', open: 3, launches: 2, uninstalls: 0, installs: null },
+    { t: 1762172100, channel: 'experimental', open: 1, launches: 0, uninstalls: 1, installs: null },
+    { t: 1762173900, channel: 'public', open: 5, launches: 1, uninstalls: 0, installs: null },
+  ],
+  ...over,
+});
+
+test('series: every point of the range, with gaps before counting began and zeros after', () => {
+  const s = normalizeSeries(series());
+  assert.equal(s.points.length, 5);
+  assert.deepEqual(s.points.map(p => p.t), [1762171200, 1762172100, 1762173000, 1762173900, 1762174800]);
+  assert.equal(s.points[0].open.public, null);
+  assert.equal(s.points[0].launches.public, null);
+  assert.equal(s.points[1].open.public, 3);
+  assert.equal(s.points[1].uninstalls.experimental, 1);
+  assert.equal(s.points[2].open.public, null, 'a missed check is a gap, not a zero');
+  assert.equal(s.points[2].launches.public, 0, 'a quiet counted step is a zero');
+  assert.equal(s.points[4].partial, true);
+  assert.equal(s.points[3].partial, false);
+});
+
+test('series: daily ranges count launches and active installs from the first day', () => {
+  const day = t => Date.parse(`${t}T00:00:00Z`) / 1000;
+  const s = normalizeSeries(series({
+    range: '30d', step: 86400, from: day('2026-10-05'), to: day('2026-11-04'), tracking_since: day('2026-11-04') + 900,
+    rows: [{ t: day('2026-11-02'), channel: 'public', open: null, launches: 7, uninstalls: 0, installs: 3 }],
+  }));
+  assert.equal(s.daily, true);
+  assert.equal(s.points.length, 31);
+  const at = d => s.points.find(p => p.t === day(d));
+  assert.equal(at('2026-11-01').launches.public, null);
+  assert.equal(at('2026-11-02').launches.public, 7);
+  assert.equal(at('2026-11-02').installs.public, 3);
+  assert.equal(at('2026-11-03').installs.experimental, 0);
+  assert.equal(at('2026-11-03').uninstalls.public, null, 'uninstalls only from the day counting began');
+  assert.equal(at('2026-11-04').uninstalls.public, 0);
+});
+
+test('series: nothing tracked yet reads as all gaps', () => {
+  const s = normalizeSeries(series({ tracking_since: null, rows: [] }));
+  assert.ok(s.points.every(p => p.open.public === null && p.launches.public === null && p.uninstalls.experimental === null));
+});
+
+test('series: odd input is refused or ignored', () => {
+  assert.throws(() => normalizeSeries(null), LoadError);
+  assert.throws(() => normalizeSeries(series({ step: 0 })), LoadError);
+  assert.throws(() => normalizeSeries(series({ to: 1 })), LoadError);
+  assert.throws(() => normalizeSeries(series({ step: 1, from: 0, to: 100000 })), LoadError, 'too many points');
+  const s = normalizeSeries(series({ rows: [{ t: 1762172100, channel: 'nope', open: 9 }, null, { t: 'x', channel: 'public' }] }));
+  assert.ok(s.points.every(p => p.open.public === null));
+});
+
+test('fetchSeries asks for a known range with the key as a bearer header only', async () => {
+  let seen;
+  const s = await fetchSeries('k-123', '1h', async (url, init) => { seen = { url, init }; return json(series()); });
+  assert.equal(seen.url, `${SERIES_URL}?range=1h`);
+  assert.equal(seen.init.headers.Authorization, 'Bearer k-123');
+  assert.equal(seen.init.credentials, 'omit');
+  assert.equal(s.points.length, 5);
+  await assert.rejects(fetchSeries('k', '2y', async () => json(series())), e => e.kind === 'shape');
+  await assert.rejects(fetchSeries('k', '1h', async () => new Response('', { status: 404 })), e => e.kind === 'key');
+});
+
+test('every range the page offers is one the counter knows', () => {
+  assert.deepEqual(RANGES.map(r => r.key), ['1h', '4h', '8h', '1d', '7d', '30d', '90d']);
+});
+
+test('point times are UTC', () => {
+  assert.equal(fmtBucket(1762172100, 900, false), '12:15');
+  assert.equal(fmtBucket(1762172100, 3600), '3 Nov, 12:15');
+  assert.equal(fmtBucket(1762128000, 86400), '3 Nov');
+});
+
+test('open now and uninstalls come through, and an old counter gives dashes', () => {
+  const s = normalizeStats(stats({ open_now: 4, open_now_by_channel: [{ channel: 'public', installs: 3 }, { channel: 'experimental', installs: 1 }], uninstalls_30d: 2, uninstalls_ever: 5 }));
+  assert.equal(s.openNow, 4); assert.equal(s.openPublic, 3); assert.equal(s.openExperimental, 1);
+  assert.equal(s.uninstalls30d, 2); assert.equal(s.uninstallsEver, 5);
+  const old = normalizeStats(stats());
+  assert.equal(old.openNow, null); assert.equal(old.openPublic, null); assert.equal(old.uninstalls30d, null);
 });
